@@ -1,0 +1,5 @@
+*/node_modules/
+
+.vscode/
+
+03-bases_node/salida/*.txt
