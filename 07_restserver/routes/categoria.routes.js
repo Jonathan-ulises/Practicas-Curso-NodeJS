@@ -1,8 +1,9 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
 
-const { crearCategoria, obtenerCategorias } = require('../controllers/categorias.controller');
-const { validarJWT } = require('../middlewares');
+const { crearCategoria, obtenerCategorias, obtenerCategoria, actualizarCategoria, borrarCategoria } = require('../controllers/categorias.controller');
+const { existeCategoria } = require('../helpers/db-validators');
+const { validarJWT, esAdminRole } = require('../middlewares');
 const { validarCampos } = require('../middlewares/validar-campos');
 
 const router = Router();
@@ -12,10 +13,10 @@ router.get('/', obtenerCategorias);
 
 // Obtener una categoria por id - publico
 router.get('/:id',[
-    // check('id').custom( existeCategoria )
-], (req, res) => {
-    res.json('get:id')
-});
+    check('id', "No es un ID valido").isMongoId(),
+    check('id').custom( existeCategoria ),
+    validarCampos
+], obtenerCategoria );
 
 // Crear categoria - privado (cualquier rol y token valido)
 router.post('/', [ 
@@ -25,14 +26,20 @@ router.post('/', [
  ], crearCategoria );
 
 // Actualizar categoria - privado (cualquier rol y token valido)
-router.put('/:id', (req, res) => {
-    res.json('put')
-});
+router.put('/:id', [
+    validarJWT,
+    check('id', "No es un ID valido").isMongoId(),
+    check('id').custom( existeCategoria ),
+    check('nombre', 'El nombre es obligatorio').not().isEmpty(),
+    validarCampos
+], actualizarCategoria );
 
 // Borrar (logico) categoria - privado (ADMIN y token valido)
-router.delete('/:id', (req, res) => {
-    res.json('delete')
-});
+router.delete('/:id', [
+    validarJWT,
+    esAdminRole,
+    validarCampos
+] ,borrarCategoria);
 
 
 module.exports = router;

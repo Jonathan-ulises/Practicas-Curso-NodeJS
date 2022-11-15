@@ -10,26 +10,51 @@ const obtenerCategorias = async(req = request, res = response) => {
     const { limite = 5, desde = 0 } = req.params;
     const query = { estado: true };
 
-    // const [ total, categorias ] = await Promise.all([
-    //     Categoria.countDocuments( query ),
-    //     Categoria.find( query )
-    //         .skip( Number(desde) )
-    //         .limit( Number(limite) )
-    // ]);
-
-
     const [ total, categorias ] = await Promise.all([
         Categoria.countDocuments( query ),
         Categoria.find( query )
             .skip( Number(desde) )
             .limit( Number(limite) )
-            .populate('usuario')
+            .populate('usuario', 'nombre')
     ]);
 
     res.json({
         total,
         categorias
     })
+}
+
+const obtenerCategoria = async(req = request, res = response) => {
+    const { id } = req.params;
+
+    const categoria = await Categoria.findById(id).populate('usuario', 'nombre');
+
+    if (!categoria) {
+        res.status(400).json({
+            msg: 'ID no encontrado'
+        });
+    }
+
+    res.json(categoria)
+}
+
+const actualizarCategoria = async(req = request, res = response) => {
+    const { id } = req.params;
+    const  { nombre, estado, usuario , ...data } = req.body;
+
+    data.nombre = nombre.toUpperCase();
+    data.usuario = req.usuario._id;
+
+    const categoria = await Categoria.findByIdAndUpdate(id, data, { new: true }).populate('usuario', 'nombre');
+
+    res.json(categoria)
+
+}
+
+const borrarCategoria = async(req = request, res = response) => {
+    const { id } = req.params;
+    const categoia = await Categoria.findByIdAndUpdate(id, { estado: false }).populate('usuario', 'nombre');
+    res.json({categoia})
 }
 
 const crearCategoria = async(req, res = response) => {
@@ -60,5 +85,8 @@ const crearCategoria = async(req, res = response) => {
 
 module.exports = {
     crearCategoria,
-    obtenerCategorias
+    obtenerCategorias,
+    obtenerCategoria,
+    actualizarCategoria,
+    borrarCategoria
 }
