@@ -5,3 +5,6 @@
 03-bases_node/salida/*.txt
 
 */.env
+
+*/uploads/productos/**.*
+*/uploads/usuarios/**.*
